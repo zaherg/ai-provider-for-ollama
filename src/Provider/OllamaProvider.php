@@ -1,0 +1,132 @@
+<?php
+
+declare(strict_types=1);
+
+namespace WordPress\OllamaAiProvider\Provider;
+
+use WordPress\AiClient\Common\Exception\RuntimeException;
+use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiProvider;
+use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
+use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
+use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
+use WordPress\AiClient\Providers\DTO\ProviderMetadata;
+use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
+use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
+use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
+use WordPress\OllamaAiProvider\Metadata\OllamaModelMetadataDirectory;
+use WordPress\OllamaAiProvider\Models\OllamaTextGenerationModel;
+
+/**
+ * Class for the AI Provider for Ollama.
+ */
+class OllamaProvider extends AbstractApiProvider
+{
+    /**
+     * {@inheritDoc}
+     */
+    protected static function baseUrl(): string
+    {
+        $baseUrl = static::readStringConfigValue('OLLAMA_BASE_URL') ?? 'http://localhost:11434';
+        $baseUrl = rtrim(trim($baseUrl), '/');
+
+        if ($baseUrl === '') {
+            $baseUrl = 'http://localhost:11434';
+        }
+
+        if (substr($baseUrl, -3) !== '/v1') {
+            $baseUrl .= '/v1';
+        }
+
+        return $baseUrl;
+    }
+
+    /**
+     * Returns the optional API key for Ollama, if configured.
+     *
+     * This is mainly useful when Ollama is exposed behind a proxy that requires a bearer token.
+     * Local Ollama instances typically do not require authentication.
+     *
+     * @return string|null
+     */
+    public static function optionalApiKey(): ?string
+    {
+        $apiKey = static::readStringConfigValue('OLLAMA_API_KEY');
+        if ($apiKey === null || $apiKey === '') {
+            return null;
+        }
+
+        return $apiKey;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected static function createModel(
+        ModelMetadata $modelMetadata,
+        ProviderMetadata $providerMetadata
+    ): ModelInterface {
+        $capabilities = $modelMetadata->getSupportedCapabilities();
+        foreach ($capabilities as $capability) {
+            if ($capability->isTextGeneration()) {
+                return new OllamaTextGenerationModel($modelMetadata, $providerMetadata);
+            }
+        }
+
+        throw new RuntimeException(
+            'Unsupported model capabilities: ' . implode(', ', $capabilities)
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected static function createProviderMetadata(): ProviderMetadata
+    {
+        return new ProviderMetadata(
+            'ollama',
+            'Ollama',
+            ProviderTypeEnum::server(),
+            null,
+            null
+        );
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected static function createProviderAvailability(): ProviderAvailabilityInterface
+    {
+        return new ListModelsApiBasedProviderAvailability(static::modelMetadataDirectory());
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    protected static function createModelMetadataDirectory(): ModelMetadataDirectoryInterface
+    {
+        return new OllamaModelMetadataDirectory();
+    }
+
+    /**
+     * Reads a provider configuration string from env var or constant.
+     *
+     * @param string $name Config key (e.g. OLLAMA_BASE_URL).
+     * @return string|null
+     */
+    private static function readStringConfigValue(string $name): ?string
+    {
+        $value = getenv($name);
+        if ($value !== false) {
+            return is_string($value) ? $value : null;
+        }
+
+        if (defined($name)) {
+            $constantValue = constant($name);
+            if (is_scalar($constantValue)) {
+                return (string) $constantValue;
+            }
+        }
+
+        return null;
+    }
+}
