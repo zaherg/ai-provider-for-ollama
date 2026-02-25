@@ -2,7 +2,7 @@
 
 An AI Provider for Ollama for the [PHP AI Client](https://github.com/WordPress/php-ai-client) SDK. Works as both a Composer package and a WordPress plugin.
 
-This package is adapted from the WordPress OpenAI provider and targets Ollama's OpenAI-compatible `/v1` API (for example `/v1/models` and `/v1/chat/completions`).
+This package is based on the WordPress package [`WordPress/ai-provider-for-openai`](https://github.com/WordPress/ai-provider-for-openai) and adapts that provider implementation for Ollama's OpenAI-compatible `/v1` API (for example `/v1/models` and `/v1/chat/completions`).
 
 ## Requirements
 
