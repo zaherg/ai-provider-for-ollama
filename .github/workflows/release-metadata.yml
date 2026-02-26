@@ -1,0 +1,41 @@
+name: Release Metadata Guard
+
+on:
+  pull_request:
+  push:
+    branches:
+      - "**"
+    tags:
+      - "*"
+
+jobs:
+  validate-version-sync:
+    if: github.event_name != 'push' || !startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate plugin/readme version sync
+        run: |
+          set -euo pipefail
+          bash scripts/validate-release-metadata.sh
+
+  validate-tag-metadata:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: refs/tags/${{ github.ref_name }}
+
+      - name: Validate tag matches changelog and version metadata
+        run: |
+          set -euo pipefail
+          bash scripts/validate-release-metadata.sh --tag-version "${{ github.ref_name }}"

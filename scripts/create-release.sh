@@ -12,6 +12,11 @@ VERSION="$1"
 TARGET_BRANCH="${2:-main}"
 RELEASE_DATE="$(date +%F)"
 
+if ! printf '%s' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+  echo "Version must be a SemVer tag in X.Y.Z format (example: 0.1.2)."
+  exit 1
+fi
+
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 cd "$REPO_ROOT"
 
@@ -60,6 +65,16 @@ extract_changelog_section() {
   ' CHANGELOG.md
 }
 
+tag_exists_locally() {
+  local target_version="$1"
+  git rev-parse -q --verify "refs/tags/$target_version" >/dev/null 2>&1
+}
+
+tag_exists_remotely() {
+  local target_version="$1"
+  git ls-remote --exit-code --tags origin "refs/tags/$target_version" >/dev/null 2>&1
+}
+
 trim_blank_lines() {
   local input_file="$1"
   local output_file
@@ -77,8 +92,8 @@ trim_blank_lines() {
         end--
       }
 
-      for (index = start; index <= end; index++) {
-        print lines[index]
+      for (line_index = start; line_index <= end; line_index++) {
+        print lines[line_index]
       }
     }
   ' "$input_file" > "$output_file"
@@ -175,7 +190,7 @@ trim_blank_lines "$unreleased_file"
 
 if grep -q "^## \[$VERSION\]" CHANGELOG.md; then
   echo "Found an existing CHANGELOG.md section for '$VERSION'. Using it as the release source of truth."
-  validate_version_metadata "$VERSION"
+  bash scripts/validate-release-metadata.sh --tag-version "$VERSION"
 else
   if [ ! -s "$unreleased_file" ]; then
     echo "CHANGELOG.md Unreleased section is empty."
@@ -183,9 +198,10 @@ else
     exit 1
   fi
 
-  promote_unreleased_section "$VERSION" "$RELEASE_DATE" "$unreleased_file"
   set_plugin_and_readme_versions "$VERSION"
+  promote_unreleased_section "$VERSION" "$RELEASE_DATE" "$unreleased_file"
   validate_version_metadata "$VERSION"
+  bash scripts/validate-release-metadata.sh --tag-version "$VERSION"
 
   git add CHANGELOG.md plugin.php readme.txt
   git commit -m "chore: prepare ${VERSION} release"
@@ -200,10 +216,23 @@ if [ ! -s "$notes_file" ]; then
   exit 1
 fi
 
-echo "Creating GitHub release '$VERSION' from committed CHANGELOG.md notes on '$TARGET_BRANCH'..."
+if tag_exists_remotely "$VERSION"; then
+  echo "Remote tag '$VERSION' already exists. Skipping tag creation."
+else
+  if tag_exists_locally "$VERSION"; then
+    echo "Local tag '$VERSION' already exists. Pushing it to origin."
+  else
+    echo "Creating git tag '$VERSION'..."
+    git tag -a "$VERSION" -m "Release $VERSION"
+  fi
+
+  echo "Pushing git tag '$VERSION'..."
+  git push origin "$VERSION"
+fi
+
+echo "Creating GitHub release '$VERSION' from committed CHANGELOG.md notes..."
 gh release create "$VERSION" \
   --title "$VERSION" \
-  --target "$TARGET_BRANCH" \
   --notes-file "$notes_file"
 
 echo "Release '$VERSION' created successfully."
