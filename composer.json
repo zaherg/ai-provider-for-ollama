@@ -1,5 +1,5 @@
 {
-    "name": "wordpress/ai-provider-for-ollama",
+    "name": "zaherg/ai-provider-for-ollama",
     "description": "AI Provider for Ollama for the PHP AI Client SDK. Works as both a Composer package and WordPress plugin.",
     "license": "GPL-2.0-or-later",
     "keywords": [
@@ -11,14 +11,13 @@
     ],
     "authors": [
         {
-            "name": "WordPress AI Team",
-            "homepage": "https://make.wordpress.org/ai/"
+            "name": "AI Team"
         }
     ],
-    "homepage": "https://github.com/WordPress/ai-provider-for-ollama",
+    "homepage": "https://github.com/zaherg/ai-provider-for-ollama",
     "support": {
-        "issues": "https://github.com/WordPress/ai-provider-for-ollama/issues",
-        "source": "https://github.com/WordPress/ai-provider-for-ollama"
+        "issues": "https://github.com/zaherg/ai-provider-for-ollama/issues",
+        "source": "https://github.com/zaherg/ai-provider-for-ollama"
     },
     "require": {
         "php": ">=7.4"
