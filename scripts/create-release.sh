@@ -60,7 +60,7 @@ extract_changelog_section() {
   local target_version="$1"
   awk -v version="$target_version" '
     $0 ~ "^## \\[" version "\\]" { in_section=1; next }
-    /^## \\[/ { if (in_section) exit }
+    /^## \[/ { if (in_section) exit }
     in_section { print }
   ' CHANGELOG.md
 }
