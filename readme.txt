@@ -3,7 +3,7 @@ Contributors: wordpressdotorg
 Tags: ai, ollama, llm, artificial-intelligence, connector
 Requires at least: 6.9
 Tested up to: 7.0
-Stable tag: 0.1.0
+Stable tag: 0.1.1
 Requires PHP: 7.4
 License: GPL-2.0-or-later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -55,6 +55,12 @@ For Ollama Cloud API access details, see https://docs.ollama.com/cloud#cloud-api
 No, this plugin requires the PHP AI Client plugin to be installed and activated. It provides the Ollama-specific provider implementation used by the PHP AI Client.
 
 == Changelog ==
+
+= 0.1.1 =
+
+* Updated provider metadata so Ollama appears in WP AI Client credential flows that list cloud providers
+* Replaced availability preflight with a no-network configuration check to avoid false not-configured responses
+* Added lazy HTTP transporter initialization for safer registry startup timing
 
 = 0.1.0 =
 
