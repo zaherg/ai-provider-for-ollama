@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Kept Ollama provider metadata classified as a cloud provider while removing the cloud docs URL from provider metadata.
+- Exposed API key authentication metadata in provider metadata while keeping `OLLAMA_API_KEY` optional for Ollama deployments.
+
+### Documentation
+- Clarified server endpoint configuration wording and examples to use the default `http://localhost:11434/v1`.
+- Updated README and WordPress `readme.txt` guidance to explain that `OLLAMA_API_KEY` is optional and only needed when the server requires bearer authentication.
+
 ## [0.1.1] - 2026-02-26
 
 ### Changed
