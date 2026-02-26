@@ -51,11 +51,6 @@ if [ -n "$(git status --porcelain)" ]; then
   exit 1
 fi
 
-if grep -q "^## \[$VERSION\]" CHANGELOG.md; then
-  echo "CHANGELOG.md already contains a section for '$VERSION'."
-  exit 1
-fi
-
 extract_changelog_section() {
   local target_version="$1"
   awk -v version="$target_version" '
@@ -178,22 +173,32 @@ trap 'rm -f "$notes_file" "$unreleased_file"' EXIT
 extract_unreleased_section > "$unreleased_file"
 trim_blank_lines "$unreleased_file"
 
-if [ ! -s "$unreleased_file" ]; then
-  echo "CHANGELOG.md Unreleased section is empty."
-  echo "Add changes under '## [Unreleased]' before releasing."
-  exit 1
-fi
+if grep -q "^## \[$VERSION\]" CHANGELOG.md; then
+  echo "Found an existing CHANGELOG.md section for '$VERSION'. Using it as the release source of truth."
+  validate_version_metadata "$VERSION"
+else
+  if [ ! -s "$unreleased_file" ]; then
+    echo "CHANGELOG.md Unreleased section is empty."
+    echo "Add changes under '## [Unreleased]' before releasing."
+    exit 1
+  fi
 
-promote_unreleased_section "$VERSION" "$RELEASE_DATE" "$unreleased_file"
-set_plugin_and_readme_versions "$VERSION"
-validate_version_metadata "$VERSION"
+  promote_unreleased_section "$VERSION" "$RELEASE_DATE" "$unreleased_file"
+  set_plugin_and_readme_versions "$VERSION"
+  validate_version_metadata "$VERSION"
+
+  git add CHANGELOG.md plugin.php readme.txt
+  git commit -m "chore: prepare ${VERSION} release"
+  git push origin "$TARGET_BRANCH"
+fi
 
 extract_changelog_section "$VERSION" > "$notes_file"
 trim_blank_lines "$notes_file"
 
-git add CHANGELOG.md plugin.php readme.txt
-git commit -m "chore: prepare ${VERSION} release"
-git push origin "$TARGET_BRANCH"
+if [ ! -s "$notes_file" ]; then
+  echo "CHANGELOG.md section for '$VERSION' is empty."
+  exit 1
+fi
 
 echo "Creating GitHub release '$VERSION' from committed CHANGELOG.md notes on '$TARGET_BRANCH'..."
 gh release create "$VERSION" \
