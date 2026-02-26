@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WordPress\OllamaAiProvider\Http;
+namespace Zaherg\OllamaAiProvider\Http;
 
 use WordPress\AiClient\Providers\Http\Contracts\RequestAuthenticationInterface;
 use WordPress\AiClient\Providers\Http\DTO\Request;

@@ -13,15 +13,15 @@
  * License URI: https://spdx.org/licenses/GPL-2.0-or-later.html
  * Text Domain: ai-provider-for-ollama
  *
- * @package WordPress\OllamaAiProvider
+ * @package Zaherg\OllamaAiProvider
  */
 
 declare(strict_types=1);
 
-namespace WordPress\OllamaAiProvider;
+namespace Zaherg\OllamaAiProvider;
 
 use WordPress\AiClient\AiClient;
-use WordPress\OllamaAiProvider\Provider\OllamaProvider;
+use Zaherg\OllamaAiProvider\Provider\OllamaProvider;
 
 if (!defined('ABSPATH')) {
     return;

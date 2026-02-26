@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace WordPress\OllamaAiProvider\Metadata;
+namespace Zaherg\OllamaAiProvider\Metadata;
 
 use WordPress\AiClient\Common\Exception\RuntimeException as AiClientRuntimeException;
 use WordPress\AiClient\Messages\Enums\ModalityEnum;
@@ -17,8 +17,8 @@ use WordPress\AiClient\Providers\Models\DTO\SupportedOption;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
 use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
 use WordPress\AiClient\Providers\OpenAiCompatibleImplementation\AbstractOpenAiCompatibleModelMetadataDirectory;
-use WordPress\OllamaAiProvider\Http\NoOpRequestAuthentication;
-use WordPress\OllamaAiProvider\Provider\OllamaProvider;
+use Zaherg\OllamaAiProvider\Http\NoOpRequestAuthentication;
+use Zaherg\OllamaAiProvider\Provider\OllamaProvider;
 
 /**
  * Model metadata directory for Ollama via its OpenAI-compatible /v1/models endpoint.

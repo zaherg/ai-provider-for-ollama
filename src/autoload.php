@@ -5,13 +5,13 @@
  *
  * @since 0.1.0
  *
- * @package WordPress\OllamaAiProvider
+ * @package Zaherg\OllamaAiProvider
  */
 
 declare(strict_types=1);
 
 spl_autoload_register(static function (string $class): void {
-    $prefix = 'WordPress\\OllamaAiProvider\\';
+    $prefix = 'Zaherg\\OllamaAiProvider\\';
     $baseDir = __DIR__ . '/';
 
     $len = strlen($prefix);

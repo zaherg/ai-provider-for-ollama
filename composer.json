@@ -38,7 +38,7 @@
     "prefer-stable": true,
     "autoload": {
         "psr-4": {
-            "WordPress\\OllamaAiProvider\\": "src/"
+            "Zaherg\\OllamaAiProvider\\": "src/"
         }
     },
     "config": {
