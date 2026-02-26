@@ -10,7 +10,6 @@ use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
 use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
-use WordPress\AiClient\Providers\Http\Enums\RequestAuthenticationMethod;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 use Zaherg\OllamaAiProvider\Metadata\OllamaModelMetadataDirectory;
@@ -81,9 +80,7 @@ class OllamaProvider extends AbstractApiProvider
         return new ProviderMetadata(
             'ollama',
             'Ollama',
-            ProviderTypeEnum::cloud(),
-            'https://docs.ollama.com/cloud#cloud-api-access',
-            RequestAuthenticationMethod::apiKey()
+            ProviderTypeEnum::cloud()
         );
     }
 
