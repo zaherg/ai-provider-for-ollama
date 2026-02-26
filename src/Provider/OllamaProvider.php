@@ -10,6 +10,7 @@ use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
 use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
 use WordPress\AiClient\Providers\Enums\ProviderTypeEnum;
+use WordPress\AiClient\Providers\Http\Enums\RequestAuthenticationMethod;
 use WordPress\AiClient\Providers\Models\Contracts\ModelInterface;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 use Zaherg\OllamaAiProvider\Metadata\OllamaModelMetadataDirectory;
@@ -36,10 +37,9 @@ class OllamaProvider extends AbstractApiProvider
     }
 
     /**
-     * Returns the optional API key for Ollama, if configured.
+     * Returns the configured API key for authenticated server deployments, if present.
      *
-     * This is mainly useful when Ollama is exposed behind a proxy that requires a bearer token.
-     * Local Ollama instances typically do not require authentication.
+     * This is used when the configured endpoint requires bearer token authentication.
      *
      * @return string|null
      */
@@ -80,7 +80,9 @@ class OllamaProvider extends AbstractApiProvider
         return new ProviderMetadata(
             'ollama',
             'Ollama',
-            ProviderTypeEnum::cloud()
+            ProviderTypeEnum::cloud(),
+            null,
+            RequestAuthenticationMethod::apiKey()
         );
     }
 
@@ -96,8 +98,8 @@ class OllamaProvider extends AbstractApiProvider
              */
             public function isConfigured(): bool
             {
-                // Local Ollama commonly runs without credentials. Let the real model-list
-                // request determine runtime availability to avoid false "missing credentials" errors.
+                // Let the real model-list request determine runtime availability to avoid
+                // false "missing credentials" or connectivity errors during registration.
                 return true;
             }
         };

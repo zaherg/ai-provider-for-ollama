@@ -20,33 +20,33 @@ This plugin provides Ollama integration for the PHP AI Client SDK using Ollama's
 * Function calling support
 * JSON output support
 * Automatic provider registration
-* Automatic model discovery from local Ollama (`/v1/models`)
+* Automatic model discovery from the configured server (`/v1/models`)
 
 **Requirements:**
 
 * PHP 7.4 or higher
-* Ollama running locally or on a reachable server
-* Exact Ollama server URL/path using the OpenAI-compatible `/v1` base URL (for example `http://localhost:11434/v1`)
+* A reachable OpenAI-compatible `/v1` server endpoint for your deployment
+* Exact server URL/path (default: `http://localhost:11434/v1`)
 * For WordPress 6.9, the [wordpress/php-ai-client](https://github.com/WordPress/php-ai-client) package must be installed
 * For WordPress 7.0 and above, no additional changes are required
 
 **Configuration:**
 
-* `OLLAMA_BASE_URL` (required, exact Ollama server URL/path using the OpenAI-compatible `/v1` base URL, for example `http://localhost:11434/v1`) - set via `define( 'OLLAMA_BASE_URL', '...' );` in `wp-config.php`
-* `OLLAMA_API_KEY` (optional, for secured/proxied Ollama servers) - if needed, set via `define( 'OLLAMA_API_KEY', '...' );`
+* `OLLAMA_BASE_URL` (required, exact server URL/path using the OpenAI-compatible `/v1` base URL, default `http://localhost:11434/v1`) - set via `define( 'OLLAMA_BASE_URL', '...' );` in `wp-config.php`
+* `OLLAMA_API_KEY` (optional, bearer token for secured/proxied Ollama servers) - set via `define( 'OLLAMA_API_KEY', '...' );` if your server requires auth
 
 == Installation ==
 
 1. Upload the plugin files to `/wp-content/plugins/ai-provider-for-ollama/`
 2. Activate the plugin through the 'Plugins' menu in WordPress
-3. Ensure Ollama is running and your desired models are installed
-4. Configure `OLLAMA_BASE_URL` to the exact OpenAI-compatible `/v1` base URL for your Ollama server (local or remote)
+3. Ensure your server is reachable and your desired models are available
+4. Configure `OLLAMA_BASE_URL` to the exact OpenAI-compatible `/v1` base URL for your server; set `OLLAMA_API_KEY` only if your server requires auth
 
 == Frequently Asked Questions ==
 
 = Do I need an API key? =
 
-Usually no. Local Ollama instances typically do not require authentication. Use `OLLAMA_API_KEY` only if your deployment is behind a proxy that requires a bearer token.
+Not always. Local Ollama usually does not require authentication. Configure `OLLAMA_API_KEY` only if your server requires a bearer token.
 
 = Does this plugin work without the PHP AI Client? =
 

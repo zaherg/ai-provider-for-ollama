@@ -7,8 +7,8 @@ This package is based on the WordPress package [`WordPress/ai-provider-for-opena
 ## Requirements
 
 - PHP 7.4 or higher
-- Ollama running locally or remotely
-- Exact Ollama server URL/path (OpenAI-compatible `/v1` base URL, for example `http://localhost:11434/v1`)
+- A reachable OpenAI-compatible `/v1` server endpoint for your deployment
+- Exact server URL/path (default: `http://localhost:11434/v1`)
 - When using with WordPress, WordPress 7.0 or higher
   - If using an older WordPress release, the [wordpress/php-ai-client](https://github.com/WordPress/php-ai-client) package must be installed
 
@@ -34,8 +34,10 @@ composer require wordpress/ai-provider-for-ollama
 The provider automatically registers itself with the PHP AI Client on the `init` hook.
 
 ```php
-// Required: set the exact OpenAI-compatible /v1 base URL for your Ollama server.
-define('OLLAMA_BASE_URL', 'http://your-ollama-server:11434/v1');
+// Required: set the exact OpenAI-compatible /v1 base URL for your server.
+define('OLLAMA_BASE_URL', 'http://localhost:11434/v1');
+// Optional: if your Ollama server requires bearer auth.
+define('OLLAMA_API_KEY', 'your-api-key');
 
 $result = AiClient::prompt('Hello, world!')
     ->usingProvider('ollama')
@@ -51,7 +53,9 @@ use Zaherg\OllamaAiProvider\Provider\OllamaProvider;
 $registry = AiClient::defaultRegistry();
 $registry->registerProvider(OllamaProvider::class);
 
-define('OLLAMA_BASE_URL', 'http://your-ollama-server:11434/v1');
+define('OLLAMA_BASE_URL', 'http://localhost:11434/v1');
+// Optional: if your Ollama server requires bearer auth.
+define('OLLAMA_API_KEY', 'your-api-key');
 
 $result = AiClient::prompt('Explain quantum computing')
     ->usingProvider('ollama')
@@ -62,8 +66,8 @@ echo $result->toText();
 
 ## Configuration
 
-- `OLLAMA_BASE_URL` (required): Exact Ollama server URL/path using the OpenAI-compatible `/v1` base URL (for example `http://localhost:11434/v1`). Set via a constant in `wp-config.php` (`define('OLLAMA_BASE_URL', '...');`).
-- `OLLAMA_API_KEY` (optional): Bearer token for secured/proxied Ollama servers. Standard local Ollama usually needs no auth. If needed, set via `define('OLLAMA_API_KEY', '...');`.
+- `OLLAMA_BASE_URL` (required): Exact server URL/path using the OpenAI-compatible `/v1` base URL (default: `http://localhost:11434/v1`). Set via a constant in `wp-config.php` (`define('OLLAMA_BASE_URL', '...');`).
+- `OLLAMA_API_KEY` (optional): Bearer token for secured/proxied Ollama servers. Set via `define('OLLAMA_API_KEY', '...');` if your server requires auth.
 
 ## Supported Features (Current)
 
