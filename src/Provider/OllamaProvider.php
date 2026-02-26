@@ -26,7 +26,19 @@ class OllamaProvider extends AbstractApiProvider
      */
     protected static function baseUrl(): string
     {
-        $baseUrl = static::readStringConfigValue('OLLAMA_BASE_URL') ?? 'http://localhost:11434';
+        $baseUrl = null;
+
+        if (defined('OLLAMA_BASE_URL')) {
+            $configuredBaseUrl = constant('OLLAMA_BASE_URL');
+            if (is_scalar($configuredBaseUrl) && (string) $configuredBaseUrl !== '') {
+                $baseUrl = (string) $configuredBaseUrl;
+            }
+        }
+
+        if ($baseUrl === null) {
+            $baseUrl = static::readStringConfigValue('OLLAMA_BASE_URL') ?? 'http://localhost:11434';
+        }
+
         $baseUrl = rtrim(trim($baseUrl), '/');
 
         if ($baseUrl === '') {
