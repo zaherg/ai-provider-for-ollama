@@ -1,37 +1,120 @@
-name: Update Changelog
+name: Validate Changelog
 
 on:
   release:
-    types: [released]
+    types: [released, edited]
 
 jobs:
-  update-changelog:
+  validate-changelog:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
 
     steps:
-      - name: Checkout code
+      - name: Checkout released tag
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ github.event.release.target_commitish }}
+          ref: refs/tags/${{ github.event.release.tag_name }}
 
-      - name: Extract release date from tag
-        id: release_date
+      - name: Validate changelog section matches release body
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          GITHUB_EVENT_PATH_FILE: ${{ github.event_path }}
         run: |
-          echo "date=$(git log -1 --date=short --format=%ad '${{ github.event.release.tag_name }}')" >> "$GITHUB_OUTPUT"
+          set -euo pipefail
 
-      - name: Update CHANGELOG.md (Keep a Changelog)
-        uses: stefanzweifel/changelog-updater-action@v1
-        with:
-          release-date: ${{ steps.release_date.outputs.date }}
-          latest-version: ${{ github.event.release.tag_name }}
-          release-notes: ${{ github.event.release.body }}
+          version="${RELEASE_TAG#v}"
 
-      - name: Commit updated CHANGELOG
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          branch: ${{ github.event.release.target_commitish }}
-          commit_message: "docs: update changelog for ${{ github.event.release.tag_name }}"
-          file_pattern: CHANGELOG.md
+          if ! grep -q "^## \[$version\]" CHANGELOG.md; then
+            echo "CHANGELOG.md is missing a section for release $version"
+            exit 1
+          fi
+
+          extract_changelog_section() {
+            local target_version="$1"
+            awk -v version="$target_version" '
+              $0 ~ "^## \\[" version "\\]" { in_section=1; next }
+              /^## \\[/ { if (in_section) exit }
+              in_section { print }
+            ' CHANGELOG.md
+          }
+
+          trim_blank_lines() {
+            local input_file="$1"
+            local output_file
+            output_file="$(mktemp)"
+            awk '
+              { sub(/\r$/, ""); lines[++count] = $0 }
+              END {
+                start = 1
+                while (start <= count && lines[start] ~ /^[[:space:]]*$/) {
+                  start++
+                }
+
+                end = count
+                while (end >= start && lines[end] ~ /^[[:space:]]*$/) {
+                  end--
+                }
+
+                for (index = start; index <= end; index++) {
+                  print lines[index]
+                }
+              }
+            ' "$input_file" > "$output_file"
+            mv "$output_file" "$input_file"
+          }
+
+          changelog_notes_file="$(mktemp)"
+          release_body_file="$(mktemp)"
+          trap 'rm -f "$changelog_notes_file" "$release_body_file"' EXIT
+
+          extract_changelog_section "$version" > "$changelog_notes_file"
+          trim_blank_lines "$changelog_notes_file"
+
+          if [ ! -s "$changelog_notes_file" ]; then
+            echo "CHANGELOG.md section for $version is empty"
+            exit 1
+          fi
+
+          jq -r '.release.body // ""' "$GITHUB_EVENT_PATH_FILE" > "$release_body_file"
+          trim_blank_lines "$release_body_file"
+
+          if [ ! -s "$release_body_file" ]; then
+            echo "Release body is empty. Publish release notes from the committed CHANGELOG.md section for $version."
+            exit 1
+          fi
+
+          if ! diff -u "$changelog_notes_file" "$release_body_file"; then
+            echo "Release body must match the committed CHANGELOG.md section for $version"
+            exit 1
+          fi
+
+          echo "CHANGELOG.md section for $version matches the release body."
+
+      - name: Ensure tag points to a versioned commit
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+
+          version="${RELEASE_TAG#v}"
+          plugin_version="$(sed -n 's/^ \* Version: //p' plugin.php | head -n 1 | tr -d '[:space:]')"
+          stable_tag="$(sed -n 's/^Stable tag: //p' readme.txt | head -n 1 | tr -d '[:space:]')"
+
+          if [ "$plugin_version" != "$version" ]; then
+            echo "plugin.php version ($plugin_version) does not match release tag ($version)"
+            exit 1
+          fi
+
+          if [ "$stable_tag" != "$version" ]; then
+            echo "readme.txt Stable tag ($stable_tag) does not match release tag ($version)"
+            exit 1
+          fi
+
+          echo "Version metadata matches release tag $version."
+
+      - name: Note release process
+        run: |
+          echo "Changelog updates must be committed before creating a release."
+          echo "Use scripts/create-release.sh to publish from committed version/changelog metadata."

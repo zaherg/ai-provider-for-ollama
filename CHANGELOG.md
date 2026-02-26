@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-02-26
+
 ### Changed
 - Updated provider metadata to classify Ollama as a cloud provider so it can appear in WP AI Client credential UI flows that only list cloud providers.
 
