@@ -6,7 +6,6 @@ namespace Zaherg\OllamaAiProvider\Provider;
 
 use WordPress\AiClient\Common\Exception\RuntimeException;
 use WordPress\AiClient\Providers\ApiBasedImplementation\AbstractApiProvider;
-use WordPress\AiClient\Providers\ApiBasedImplementation\ListModelsApiBasedProviderAvailability;
 use WordPress\AiClient\Providers\Contracts\ModelMetadataDirectoryInterface;
 use WordPress\AiClient\Providers\Contracts\ProviderAvailabilityInterface;
 use WordPress\AiClient\Providers\DTO\ProviderMetadata;
@@ -82,7 +81,7 @@ class OllamaProvider extends AbstractApiProvider
         return new ProviderMetadata(
             'ollama',
             'Ollama',
-            ProviderTypeEnum::server(),
+            ProviderTypeEnum::cloud(),
             'https://docs.ollama.com/cloud#cloud-api-access',
             RequestAuthenticationMethod::apiKey()
         );
@@ -93,7 +92,18 @@ class OllamaProvider extends AbstractApiProvider
      */
     protected static function createProviderAvailability(): ProviderAvailabilityInterface
     {
-        return new ListModelsApiBasedProviderAvailability(static::modelMetadataDirectory());
+        return new class implements ProviderAvailabilityInterface
+        {
+            /**
+             * {@inheritDoc}
+             */
+            public function isConfigured(): bool
+            {
+                // Local Ollama commonly runs without credentials. Let the real model-list
+                // request determine runtime availability to avoid false "missing credentials" errors.
+                return true;
+            }
+        };
     }
 
     /**

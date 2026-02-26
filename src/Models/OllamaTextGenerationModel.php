@@ -5,10 +5,12 @@ declare(strict_types=1);
 namespace Zaherg\OllamaAiProvider\Models;
 
 use WordPress\AiClient\Common\Exception\RuntimeException as AiClientRuntimeException;
+use WordPress\AiClient\Providers\Http\Contracts\HttpTransporterInterface;
 use WordPress\AiClient\Providers\Http\Contracts\RequestAuthenticationInterface;
 use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\DTO\Request;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
+use WordPress\AiClient\Providers\Http\HttpTransporterFactory;
 use WordPress\AiClient\Providers\OpenAiCompatibleImplementation\AbstractOpenAiCompatibleTextGenerationModel;
 use Zaherg\OllamaAiProvider\Http\NoOpRequestAuthentication;
 use Zaherg\OllamaAiProvider\Provider\OllamaProvider;
@@ -63,6 +65,22 @@ class OllamaTextGenerationModel extends AbstractOpenAiCompatibleTextGenerationMo
             }
 
             return new NoOpRequestAuthentication();
+        }
+    }
+
+    /**
+     * Lazily initializes the HTTP transporter if the registry was created before the WordPress discovery strategy.
+     *
+     * {@inheritDoc}
+     */
+    public function getHttpTransporter(): HttpTransporterInterface
+    {
+        try {
+            return parent::getHttpTransporter();
+        } catch (AiClientRuntimeException $e) {
+            $this->setHttpTransporter(HttpTransporterFactory::createTransporter());
+
+            return parent::getHttpTransporter();
         }
     }
 }
