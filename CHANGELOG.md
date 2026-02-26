@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-02-26
+
 ### Changed
 - Kept Ollama provider metadata classified as a cloud provider while removing the cloud docs URL from provider metadata.
 - Exposed API key authentication metadata in provider metadata while keeping `OLLAMA_API_KEY` optional for Ollama deployments.
