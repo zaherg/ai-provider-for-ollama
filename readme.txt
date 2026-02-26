@@ -31,21 +31,24 @@ This plugin provides Ollama integration for the PHP AI Client SDK using Ollama's
 
 **Configuration:**
 
-* `OLLAMA_BASE_URL` (optional, defaults to `http://localhost:11434`)
-* `OLLAMA_API_KEY` (optional, for secured/proxied deployments)
+* `OLLAMA_BASE_URL` (optional, exact OpenAI-compatible base URL for your deployment; local default is `http://localhost:11434/v1`) - set via `define( 'OLLAMA_BASE_URL', '...' );` in `wp-config.php`
+* `OLLAMA_API_KEY` (optional, for secured/proxied deployments) - if needed, set via `define( 'OLLAMA_API_KEY', '...' );`
+* For Ollama Cloud API access, see https://docs.ollama.com/cloud#cloud-api-access and configure `OLLAMA_BASE_URL` to the exact Cloud OpenAI-compatible base URL plus `OLLAMA_API_KEY` as needed
 
 == Installation ==
 
 1. Upload the plugin files to `/wp-content/plugins/ai-provider-for-ollama/`
 2. Activate the plugin through the 'Plugins' menu in WordPress
 3. Ensure Ollama is running and your desired models are installed
-4. Optionally configure `OLLAMA_BASE_URL` if Ollama is not running on the default local address
+4. Optionally configure `OLLAMA_BASE_URL` to the exact OpenAI-compatible base URL for your deployment if Ollama is not running on the default local address
 
 == Frequently Asked Questions ==
 
 = Do I need an API key? =
 
 Usually no. Local Ollama instances typically do not require authentication. Use `OLLAMA_API_KEY` only if your deployment is behind a proxy that requires a bearer token.
+
+For Ollama Cloud API access details, see https://docs.ollama.com/cloud#cloud-api-access.
 
 = Does this plugin work without the PHP AI Client? =
 
