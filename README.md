@@ -34,7 +34,7 @@ Add the GitHub repository to your `composer.json`:
 
 Then run:
 ```bash
-composer install
+composer update
 ```
 
 ### As a WordPress Plugin
