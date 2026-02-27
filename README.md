@@ -16,8 +16,22 @@ This package is based on the WordPress package [`WordPress/ai-provider-for-opena
 
 ### As a Composer Package
 
+First, add the GitHub repository to your `composer.json`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/zaherg/ai-provider-for-ollama"
+        }
+    ]
+}
+```
+
+Then install the package:
 ```bash
-composer require zaherg/ai-provider-for-ollama
+composer require zaherg/ai-provider-for-ollama:^0.1.3
 ```
 
 ### As a WordPress Plugin
