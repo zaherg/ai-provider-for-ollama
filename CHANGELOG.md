@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Optional no-auth request authentication fallback for local Ollama deployments.
 - Optional Ollama API key support (`OLLAMA_API_KEY`) for secured/proxied Ollama deployments.
 - `wp-config.php` constant support for `OLLAMA_BASE_URL`.
-- AI assistance disclaimer file (`DISCLAMER.md`).
+- AI assistance disclaimer file (`DISCLAIMER.md`).
 
 ### Changed
 - Renamed package/plugin namespace prefix from `WordPress` to `Zaherg`.
