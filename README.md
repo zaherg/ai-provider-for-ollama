@@ -16,17 +16,11 @@ This package is based on the WordPress package [`WordPress/ai-provider-for-opena
 
 ### As a Composer Package
 
+Install directly from GitHub using Composer:
+
+**Option 1: Direct installation**
 ```bash
-composer require zaherg/ai-provider-for-ollama
-```
-
-#### Installing from GitHub
-
-You can also install directly from GitHub for development versions, forks, or when Packagist is unavailable:
-
-**Option 1: Install dev version directly**
-```bash
-composer require zaherg/ai-provider-for-ollama:dev-main --prefer-source
+composer require zaherg/ai-provider-for-ollama:^0.1.3 --prefer-source
 ```
 
 **Option 2: Add repository to composer.json**
@@ -39,15 +33,10 @@ composer require zaherg/ai-provider-for-ollama:dev-main --prefer-source
         }
     ],
     "require": {
-        "zaherg/ai-provider-for-ollama": "dev-main"
+        "zaherg/ai-provider-for-ollama": "^0.1.3"
     }
 }
 ```
-
-This is useful for:
-- Installing unreleased features from the main branch
-- Contributing to the project or testing forks
-- Fallback when Packagist is temporarily unavailable
 
 ### As a WordPress Plugin
 
