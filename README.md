@@ -20,6 +20,35 @@ This package is based on the WordPress package [`WordPress/ai-provider-for-opena
 composer require zaherg/ai-provider-for-ollama
 ```
 
+#### Installing from GitHub
+
+You can also install directly from GitHub for development versions, forks, or when Packagist is unavailable:
+
+**Option 1: Install dev version directly**
+```bash
+composer require zaherg/ai-provider-for-ollama:dev-main --prefer-source
+```
+
+**Option 2: Add repository to composer.json**
+```json
+{
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/zaherg/ai-provider-for-ollama"
+        }
+    ],
+    "require": {
+        "zaherg/ai-provider-for-ollama": "dev-main"
+    }
+}
+```
+
+This is useful for:
+- Installing unreleased features from the main branch
+- Contributing to the project or testing forks
+- Fallback when Packagist is temporarily unavailable
+
 ### As a WordPress Plugin
 
 1. Upload the plugin files
