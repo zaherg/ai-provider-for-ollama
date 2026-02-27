@@ -4,22 +4,17 @@ declare(strict_types=1);
 
 namespace Zaherg\OllamaAiProvider\Metadata;
 
-use WordPress\AiClient\Common\Exception\RuntimeException as AiClientRuntimeException;
-use WordPress\AiClient\Providers\Http\Contracts\HttpTransporterInterface;
 use WordPress\AiClient\Messages\Enums\ModalityEnum;
-use WordPress\AiClient\Providers\Http\Contracts\RequestAuthenticationInterface;
-use WordPress\AiClient\Providers\Http\DTO\ApiKeyRequestAuthentication;
 use WordPress\AiClient\Providers\Http\DTO\Request;
 use WordPress\AiClient\Providers\Http\DTO\Response;
 use WordPress\AiClient\Providers\Http\Enums\HttpMethodEnum;
 use WordPress\AiClient\Providers\Http\Exception\ResponseException;
-use WordPress\AiClient\Providers\Http\HttpTransporterFactory;
 use WordPress\AiClient\Providers\Models\DTO\ModelMetadata;
 use WordPress\AiClient\Providers\Models\DTO\SupportedOption;
 use WordPress\AiClient\Providers\Models\Enums\CapabilityEnum;
 use WordPress\AiClient\Providers\Models\Enums\OptionEnum;
 use WordPress\AiClient\Providers\OpenAiCompatibleImplementation\AbstractOpenAiCompatibleModelMetadataDirectory;
-use Zaherg\OllamaAiProvider\Http\NoOpRequestAuthentication;
+use Zaherg\OllamaAiProvider\Http\OllamaHttpInitTrait;
 use Zaherg\OllamaAiProvider\Provider\OllamaProvider;
 
 /**
@@ -31,6 +26,8 @@ use Zaherg\OllamaAiProvider\Provider\OllamaProvider;
  */
 class OllamaModelMetadataDirectory extends AbstractOpenAiCompatibleModelMetadataDirectory
 {
+    use OllamaHttpInitTrait;
+
     /**
      * {@inheritDoc}
      */
@@ -46,39 +43,6 @@ class OllamaModelMetadataDirectory extends AbstractOpenAiCompatibleModelMetadata
             $headers,
             $data
         );
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public function getRequestAuthentication(): RequestAuthenticationInterface
-    {
-        try {
-            return parent::getRequestAuthentication();
-        } catch (AiClientRuntimeException $e) {
-            $apiKey = OllamaProvider::optionalApiKey();
-            if ($apiKey !== null) {
-                return new ApiKeyRequestAuthentication($apiKey);
-            }
-
-            return new NoOpRequestAuthentication();
-        }
-    }
-
-    /**
-     * Lazily initializes the HTTP transporter if the registry was created before the WordPress discovery strategy.
-     *
-     * {@inheritDoc}
-     */
-    public function getHttpTransporter(): HttpTransporterInterface
-    {
-        try {
-            return parent::getHttpTransporter();
-        } catch (AiClientRuntimeException $e) {
-            $this->setHttpTransporter(HttpTransporterFactory::createTransporter());
-
-            return parent::getHttpTransporter();
-        }
     }
 
     /**
@@ -162,7 +126,7 @@ class OllamaModelMetadataDirectory extends AbstractOpenAiCompatibleModelMetadata
     {
         $lowerModelId = strtolower($modelId);
 
-        return str_contains($lowerModelId, 'embed') || str_contains($lowerModelId, 'embedding');
+        return str_contains($lowerModelId, 'embed');
     }
 
     /**
@@ -177,8 +141,8 @@ class OllamaModelMetadataDirectory extends AbstractOpenAiCompatibleModelMetadata
         $aId = $a->getId();
         $bId = $b->getId();
 
-        $aIsLatest = substr($aId, -7) === ':latest';
-        $bIsLatest = substr($bId, -7) === ':latest';
+        $aIsLatest = str_ends_with($aId, ':latest');
+        $bIsLatest = str_ends_with($bId, ':latest');
         if ($aIsLatest && !$bIsLatest) {
             return -1;
         }

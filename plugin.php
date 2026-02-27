@@ -27,7 +27,11 @@ if (!defined('ABSPATH')) {
     return;
 }
 
-require_once __DIR__ . '/src/autoload.php';
+if (file_exists(__DIR__ . '/vendor/autoload.php')) {
+    require_once __DIR__ . '/vendor/autoload.php';
+} else {
+    require_once __DIR__ . '/src/autoload.php';
+}
 
 /**
  * Registers the AI Provider for Ollama with the AI Client.
@@ -49,4 +53,5 @@ function register_provider(): void
     $registry->registerProvider(OllamaProvider::class);
 }
 
+// Priority 5 to register before plugins that consume AI providers on the default priority (10).
 add_action('init', __NAMESPACE__ . '\\register_provider', 5);

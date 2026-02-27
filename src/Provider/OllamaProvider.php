@@ -26,11 +26,9 @@ class OllamaProvider extends AbstractApiProvider
      */
     protected static function baseUrl(): string
     {
-        if (defined('OLLAMA_BASE_URL')) {
-            $configuredBaseUrl = constant('OLLAMA_BASE_URL');
-            if (is_scalar($configuredBaseUrl) && (string) $configuredBaseUrl !== '') {
-                return rtrim((string) $configuredBaseUrl, '/');
-            }
+        $configured = static::readStringConfigValue('OLLAMA_BASE_URL');
+        if ($configured !== null && $configured !== '') {
+            return rtrim($configured, '/');
         }
 
         return 'http://localhost:11434/v1';
@@ -114,22 +112,17 @@ class OllamaProvider extends AbstractApiProvider
     }
 
     /**
-     * Reads a provider configuration string from env var or constant.
+     * Reads a provider configuration string from a PHP constant (e.g. wp-config.php).
      *
      * @param string $name Config key (e.g. OLLAMA_BASE_URL).
      * @return string|null
      */
-    private static function readStringConfigValue(string $name): ?string
+    protected static function readStringConfigValue(string $name): ?string
     {
-        $value = getenv($name);
-        if ($value !== false) {
-            return is_string($value) ? $value : null;
-        }
-
         if (defined($name)) {
-            $constantValue = constant($name);
-            if (is_scalar($constantValue)) {
-                return (string) $constantValue;
+            $value = constant($name);
+            if (is_scalar($value)) {
+                return (string) $value;
             }
         }
 
