@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Added a shared Ollama HTTP initialization trait to centralize transporter setup across provider and model classes.
+
+### Documentation
+- Fixed README package naming to match `composer.json`.
+- Corrected the AI assistance disclaimer filename from `DISCLAMER.md` to `DISCLAIMER.md`.
+
 ## [0.1.2] - 2026-02-26
 
 ### Changed
