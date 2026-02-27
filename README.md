@@ -17,7 +17,7 @@ This package is based on the WordPress package [`WordPress/ai-provider-for-opena
 ### As a Composer Package
 
 ```bash
-composer require wordpress/ai-provider-for-ollama
+composer require zaherg/ai-provider-for-ollama
 ```
 
 ### As a WordPress Plugin
