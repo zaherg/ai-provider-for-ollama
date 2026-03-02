@@ -61,31 +61,29 @@ jobs:
 
       - name: Start WordPress Playground
         run: |
-          npx @wp-playground/cli server \
-            --auto-mount \
+          npx @wp-playground/cli@latest server \
+            --port=9400 \
+            --mount=$GITHUB_WORKSPACE:/wordpress/wp-content/plugins/ai-provider-for-ollama \
             --mount=/tmp/wp-mu-plugins:/wordpress/wp-content/mu-plugins \
             --blueprint=tests/e2e/blueprint.json \
             > /tmp/playground.log 2>&1 &
 
-          echo "Waiting for WordPress Playground to start..."
-          WP_URL=""
+          echo "Waiting for WordPress Playground on port 9400..."
           for i in $(seq 1 90); do
-            WP_URL=$(grep -oP 'https?://localhost[^\s"]*' /tmp/playground.log 2>/dev/null | head -1 || true)
-            if [ -n "$WP_URL" ] && curl -sf "$WP_URL" > /dev/null 2>&1; then
+            if curl -sf http://localhost:9400/ > /dev/null 2>&1; then
+              echo "WordPress Playground is ready"
               break
+            fi
+            if [ "$i" -eq 90 ]; then
+              echo "ERROR: WordPress Playground did not start within 180s"
+              echo "--- Playground log ---"
+              cat /tmp/playground.log
+              exit 1
             fi
             sleep 2
           done
 
-          if [ -z "$WP_URL" ]; then
-            echo "ERROR: Could not detect WordPress Playground URL"
-            echo "--- Playground log ---"
-            cat /tmp/playground.log
-            exit 1
-          fi
-
-          echo "WordPress Playground ready at $WP_URL"
-          echo "WP_URL=$WP_URL" >> "$GITHUB_ENV"
+          echo "WP_URL=http://localhost:9400" >> "$GITHUB_ENV"
 
       - name: Smoke test - WordPress loads
         run: |
