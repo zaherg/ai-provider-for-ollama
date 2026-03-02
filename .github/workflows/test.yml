@@ -1,0 +1,145 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+
+      - name: Run PHPCS
+        run: composer phpcs
+
+      - name: Run PHPStan
+        run: composer phpstan
+
+  integration:
+    name: WordPress Playground + Ollama
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@v1
+
+      - name: Start Ollama and pull test model
+        run: |
+          ollama serve &
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:11434/api/version > /dev/null 2>&1; then
+              echo "Ollama is ready"
+              break
+            fi
+            sleep 1
+          done
+          ollama pull smollm:135m
+
+      - name: Prepare test mu-plugin
+        run: |
+          mkdir -p /tmp/wp-mu-plugins
+          cp tests/e2e/test-endpoint.php /tmp/wp-mu-plugins/test-endpoint.php
+
+      - name: Start WordPress Playground
+        run: |
+          npx @wp-playground/cli server \
+            --auto-mount \
+            --mount=/tmp/wp-mu-plugins:/wordpress/wp-content/mu-plugins \
+            --blueprint=tests/e2e/blueprint.json \
+            > /tmp/playground.log 2>&1 &
+
+          echo "Waiting for WordPress Playground to start..."
+          WP_URL=""
+          for i in $(seq 1 90); do
+            WP_URL=$(grep -oP 'https?://localhost[^\s"]*' /tmp/playground.log 2>/dev/null | head -1 || true)
+            if [ -n "$WP_URL" ] && curl -sf "$WP_URL" > /dev/null 2>&1; then
+              break
+            fi
+            sleep 2
+          done
+
+          if [ -z "$WP_URL" ]; then
+            echo "ERROR: Could not detect WordPress Playground URL"
+            echo "--- Playground log ---"
+            cat /tmp/playground.log
+            exit 1
+          fi
+
+          echo "WordPress Playground ready at $WP_URL"
+          echo "WP_URL=$WP_URL" >> "$GITHUB_ENV"
+
+      - name: Smoke test - WordPress loads
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$WP_URL/")
+          echo "WordPress responded with HTTP $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "302" ]; then
+            echo "Unexpected HTTP status code"
+            exit 1
+          fi
+
+      - name: Verify Ollama is serving models
+        run: |
+          echo "Models available via Ollama API:"
+          curl -sf http://localhost:11434/v1/models | jq '.data[].id'
+
+      - name: Test Ollama provider integration
+        run: |
+          RESULT=$(curl -sf "$WP_URL/?rest_route=/ollama-test/v1/status" || echo '{"error":"endpoint not reachable"}')
+          echo "Provider test result:"
+          echo "$RESULT" | jq .
+
+          # Check AI Client SDK is available
+          echo "$RESULT" | jq -e '.ai_client_available == true' > /dev/null || {
+            echo "FAIL: WordPress AI Client SDK not available"
+            echo "This likely means WordPress does not include the AI Client (requires WP 6.9+)."
+            exit 1
+          }
+          echo "PASS: AI Client SDK is available"
+
+          # Check provider registration
+          echo "$RESULT" | jq -e '.provider_registered == true' > /dev/null || {
+            echo "FAIL: Ollama provider not registered in WordPress"
+            echo "--- Playground log ---"
+            cat /tmp/playground.log
+            exit 1
+          }
+          echo "PASS: Ollama provider is registered"
+
+          # Check Ollama connectivity from WordPress
+          echo "$RESULT" | jq -e '.ollama_reachable == true' > /dev/null || {
+            echo "FAIL: WordPress could not reach Ollama at $OLLAMA_BASE_URL"
+            echo "Error: $(echo "$RESULT" | jq -r '.error // "unknown"')"
+            exit 1
+          }
+          echo "PASS: Ollama is reachable from WordPress"
+
+          # Check model discovery
+          MODEL_COUNT=$(echo "$RESULT" | jq '.model_count // 0')
+          echo "Discovered $MODEL_COUNT model(s) from Ollama"
+          [ "$MODEL_COUNT" -gt 0 ] || {
+            echo "FAIL: No models discovered from Ollama"
+            exit 1
+          }
+          echo "PASS: Models discovered successfully"
+
+          echo ""
+          echo "All integration tests passed!"
