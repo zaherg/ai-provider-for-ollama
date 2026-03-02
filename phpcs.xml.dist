@@ -4,6 +4,7 @@
 
     <!-- Scan these files -->
     <file>src</file>
+    <file>tests</file>
     <file>plugin.php</file>
 
     <!-- Ignore vendor directory -->
@@ -24,6 +25,16 @@
     <!-- WordPress plugin bootstrap files intentionally have side effects -->
     <rule ref="PSR1.Files.SideEffects.FoundWithSymbols">
         <exclude-pattern>plugin.php</exclude-pattern>
+    </rule>
+
+    <!-- Yoast PHPUnit Polyfills require snake_case lifecycle methods (set_up, tear_down) -->
+    <rule ref="PSR1.Methods.CamelCapsMethodName.NotCamelCaps">
+        <exclude-pattern>tests/*</exclude-pattern>
+    </rule>
+
+    <!-- Test helper classes may share a file with their test class -->
+    <rule ref="PSR1.Classes.ClassDeclaration.MultipleClasses">
+        <exclude-pattern>tests/*</exclude-pattern>
     </rule>
 
     <!-- Check PHP 7.4 compatibility -->

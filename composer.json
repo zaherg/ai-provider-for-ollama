@@ -26,9 +26,11 @@
         "dealerdirect/phpcodesniffer-composer-installer": "^1.0",
         "phpcompatibility/php-compatibility": "dev-develop",
         "phpstan/phpstan": "~2.1",
+        "phpunit/phpunit": "^9.6",
         "slevomat/coding-standard": "^8.20",
         "squizlabs/php_codesniffer": "^3.7 || ^4.0",
-        "wordpress/php-ai-client": "^1.0 || dev-trunk"
+        "wordpress/php-ai-client": "^1.0 || dev-trunk",
+        "yoast/phpunit-polyfills": "^2.0 || ^3.0"
     },
     "suggest": {
         "wordpress/php-ai-client": "Required. The core PHP AI Client SDK that this provider extends."
@@ -38,6 +40,11 @@
     "autoload": {
         "psr-4": {
             "Zaherg\\OllamaAiProvider\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Zaherg\\OllamaAiProvider\\Tests\\": "tests/"
         }
     },
     "config": {
@@ -58,6 +65,7 @@
         ],
         "phpcbf": "phpcbf",
         "phpcs": "phpcs",
-        "phpstan": "phpstan analyze --memory-limit=256M"
+        "phpstan": "phpstan analyze --memory-limit=256M",
+        "test": "phpunit"
     }
 }
