@@ -3,9 +3,18 @@ name: Release
 on:
   workflow_dispatch:
     inputs:
-      version:
-        description: "Release version (SemVer, e.g. 0.2.0)"
+      bump:
+        description: "Version bump type"
         required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+      version:
+        description: "Override version (SemVer X.Y.Z). If set, bump is ignored."
+        required: false
         type: string
 
 jobs:
@@ -15,18 +24,49 @@ jobs:
       contents: write
 
     steps:
-      - name: Validate version format
-        run: |
-          if ! printf '%s' "${{ inputs.version }}" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
-            echo "::error::Version must be SemVer X.Y.Z format (e.g. 0.2.0)"
-            exit 1
-          fi
-
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
           ref: main
+
+      - name: Resolve version
+        id: resolve
+        run: |
+          set -euo pipefail
+
+          OVERRIDE="${{ inputs.version }}"
+
+          if [ -n "$OVERRIDE" ]; then
+            if ! printf '%s' "$OVERRIDE" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+              echo "::error::Override version must be SemVer X.Y.Z format (e.g. 0.2.0)"
+              exit 1
+            fi
+            echo "version=$OVERRIDE" >> "$GITHUB_OUTPUT"
+            echo "Resolved version (override): $OVERRIDE"
+            exit 0
+          fi
+
+          LATEST_TAG="$(git tag --list --sort=-v:refname '[0-9]*.[0-9]*.[0-9]*' | head -n1 || true)"
+
+          if [ -z "$LATEST_TAG" ]; then
+            LATEST_TAG="0.0.0"
+            echo "No existing tags found, starting from 0.0.0"
+          else
+            echo "Latest tag: $LATEST_TAG"
+          fi
+
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$LATEST_TAG"
+
+          case "${{ inputs.bump }}" in
+            major) MAJOR=$((MAJOR + 1)); MINOR=0; PATCH=0 ;;
+            minor) MINOR=$((MINOR + 1)); PATCH=0 ;;
+            patch) PATCH=$((PATCH + 1)) ;;
+          esac
+
+          VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Resolved version (${{ inputs.bump }} bump): $VERSION"
 
       - name: Configure git
         run: |
@@ -36,4 +76,4 @@ jobs:
       - name: Run release script
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: bash scripts/create-release.sh "${{ inputs.version }}" main
+        run: bash scripts/create-release.sh "${{ steps.resolve.outputs.version }}" main
