@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+- No unreleased changes.
+
 ## [0.1.4] - 2026-03-05
 
 ### Changed
@@ -80,3 +82,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added upstream attribution noting this package is based on `WordPress/ai-provider-for-openai`.
 - Clarified base URL configuration to use `wp-config.php` constants (not `putenv()` examples).
 - Added Ollama base URL guidance for exact server URL/path configuration.
+[Unreleased]: https://github.com/zaherg/ai-provider-for-ollama/compare/0.1.4...HEAD
