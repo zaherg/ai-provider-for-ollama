@@ -1,5 +1,4 @@
-# Exclude WordPress plugin bootstrap and autoloader from Composer archive
-plugin.php export-ignore
+# Exclude WordPress plugin autoloader from Composer archive
 /src/autoload.php export-ignore
 
 # Exclude development and CI files from Composer archive
