@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - test: add PHPUnit test suite and CI workflow
 - update gitignore
 - Remove plugin.php export-ignore from .gitattributes
+- Add AI disclaimer caution alert to README.md
+- feat(ci): automate unreleased changelog updates
 
 ## [0.1.3] - 2026-02-27
 
