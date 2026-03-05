@@ -1,0 +1,46 @@
+name: Update Changelog
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: update-changelog-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  update-unreleased:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Rebuild Unreleased changelog section
+        run: |
+          set -euo pipefail
+          bash scripts/update-unreleased-changelog.sh
+
+      - name: Commit and push changelog update
+        run: |
+          set -euo pipefail
+
+          if git diff --quiet -- CHANGELOG.md; then
+            echo "No changelog update required."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add CHANGELOG.md
+          git commit -m "chore(changelog): update unreleased section"
+          git push origin HEAD:main

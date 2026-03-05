@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Add GitHub-based Composer installation documentation to README
+- Update Composer installation to use GitHub with specific version
+- Remove direct installation option, keep only VCS repository method
+- Change composer install to composer update for new package
+- Simplify installation: add repository config then use composer require
+- Update wordpress/php-ai-client from ^0.4 to ^1.0
+- Add Claude Code GitHub Actions workflow
+- Add automated release workflow
+- Disable Claude Code cloud workflow
+- remove claude workflow
+- ci: add bump-type dropdown with optional version override to release workflow
+- test: add PHPUnit test suite and CI workflow
+- update gitignore
+- Remove plugin.php export-ignore from .gitattributes
+
 ## [0.1.3] - 2026-02-27
 
 ### Changed
