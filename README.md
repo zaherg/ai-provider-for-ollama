@@ -1,5 +1,9 @@
 # AI Provider for Ollama
 
+> [!CAUTION]
+> This was built using AI, so make sure to read our [DISCLAIMER](DISCLAIMER.md) file before using the plugin.
+> Also, this is none-official plugin and has nothing to do with the WP AI Core team.
+
 An AI Provider for Ollama for the [PHP AI Client](https://github.com/WordPress/php-ai-client) SDK. Works as both a Composer package and a WordPress plugin.
 
 This package is based on the WordPress package [`WordPress/ai-provider-for-openai`](https://github.com/WordPress/ai-provider-for-openai) and adapts that provider implementation for Ollama's OpenAI-compatible `/v1` API (for example `/v1/models` and `/v1/chat/completions`).
