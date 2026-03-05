@@ -6,7 +6,7 @@
  * Description: AI Provider for Ollama for the WordPress AI Client.
  * Requires at least: 6.9
  * Requires PHP: 7.4
- * Version: 0.1.3
+ * Version: 0.1.4
  * Author: WordPress AI Team
  * Author URI: https://make.wordpress.org/ai/
  * License: GPL-2.0-or-later
