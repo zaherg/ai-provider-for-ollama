@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-- No unreleased changes.
+### Changed
+
+- align changelog updater action with openrouter
 
 ## [0.1.4] - 2026-03-05
 
