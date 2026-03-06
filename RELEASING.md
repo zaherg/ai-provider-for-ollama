@@ -4,7 +4,7 @@ This repository uses a changelog-first release flow. `CHANGELOG.md` is finalized
 
 ## Release Steps
 
-1. On every push to `main`, `.github/workflows/update-changelog.yml` refreshes `## [Unreleased]` in `CHANGELOG.md` from commit subjects since the latest release tag.
+1. On every push to `main`, `.github/workflows/auto-update-changelog.yml` refreshes `## [Unreleased]` in `CHANGELOG.md` from commit subjects since the latest release tag.
 2. Review the generated `## [Unreleased]` notes (adjust wording/grouping if needed).
 3. Run the release script from a clean local checkout on `main`:
 

@@ -1,4 +1,4 @@
-name: Update Changelog
+name: Auto Update Changelog
 
 on:
   push:
@@ -14,33 +14,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  update-unreleased:
+  update-changelog:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Rebuild Unreleased changelog section
+      - name: Update CHANGELOG.md from commit history
         run: |
           set -euo pipefail
-          bash scripts/update-unreleased-changelog.sh
+          bash scripts/update-changelog.sh
 
       - name: Commit and push changelog update
         run: |
           set -euo pipefail
 
           if git diff --quiet -- CHANGELOG.md; then
-            echo "No changelog update required."
+            echo "No changelog changes detected."
             exit 0
           fi
 
           git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add CHANGELOG.md
-          git commit -m "chore(changelog): update unreleased section"
-          git push origin HEAD:main
+          git commit -m "docs: auto-update changelog [skip ci]"
+          git push
