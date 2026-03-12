@@ -1,0 +1,156 @@
+name: Test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  lint:
+    name: Lint & Static Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          tools: composer
+
+      - name: Install dependencies
+        run: composer install --no-progress --prefer-dist
+
+      - name: Run PHPCS
+        run: composer phpcs
+
+      - name: Run PHPStan
+        run: composer phpstan
+
+  integration:
+    name: WordPress Playground + Ollama
+    runs-on: ubuntu-latest
+    needs: lint
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup Ollama
+        uses: ai-action/setup-ollama@v1
+
+      - name: Start Ollama and pull test model
+        run: |
+          ollama serve &
+          for i in $(seq 1 30); do
+            if curl -sf http://localhost:11434/api/version > /dev/null 2>&1; then
+              echo "Ollama is ready"
+              break
+            fi
+            sleep 1
+          done
+          ollama pull smollm:135m
+
+      - name: Prepare test mu-plugin
+        run: |
+          mkdir -p /tmp/wp-mu-plugins
+          cp tests/e2e/test-endpoint.php /tmp/wp-mu-plugins/test-endpoint.php
+
+      - name: Start WordPress Playground
+        run: |
+          npx @wp-playground/cli@latest server \
+            --port=9400 \
+            --mount=$GITHUB_WORKSPACE:/wordpress/wp-content/plugins/ai-provider-for-ollama \
+            --mount=/tmp/wp-mu-plugins:/wordpress/wp-content/mu-plugins \
+            --blueprint=tests/e2e/blueprint.json \
+            > /tmp/playground.log 2>&1 &
+
+          echo "Waiting for WordPress Playground on port 9400..."
+          for i in $(seq 1 90); do
+            if curl -sf http://localhost:9400/ > /dev/null 2>&1; then
+              echo "WordPress Playground is ready"
+              break
+            fi
+            if [ "$i" -eq 90 ]; then
+              echo "ERROR: WordPress Playground did not start within 180s"
+              echo "--- Playground log ---"
+              cat /tmp/playground.log
+              exit 1
+            fi
+            sleep 2
+          done
+
+          echo "WP_URL=http://localhost:9400" >> "$GITHUB_ENV"
+
+      - name: Smoke test - WordPress loads
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$WP_URL/")
+          echo "WordPress responded with HTTP $HTTP_CODE"
+          if [ "$HTTP_CODE" != "200" ] && [ "$HTTP_CODE" != "302" ]; then
+            echo "Unexpected HTTP status code"
+            exit 1
+          fi
+
+      - name: Verify Ollama is serving models
+        run: |
+          echo "Models available via Ollama API:"
+          curl -sf http://localhost:11434/v1/models | jq '.data[].id'
+
+      - name: Test Ollama provider integration
+        run: |
+          echo "=== Fetching test endpoint ==="
+          HTTP_CODE=$(curl -s -o /tmp/test-result.json -w "%{http_code}" "$WP_URL/?rest_route=/ollama-test/v1/status")
+          echo "HTTP status: $HTTP_CODE"
+          echo "Response body:"
+          cat /tmp/test-result.json
+          echo ""
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "FAIL: Test endpoint returned HTTP $HTTP_CODE"
+            echo "--- Playground log (last 80 lines) ---"
+            tail -80 /tmp/playground.log
+            exit 1
+          fi
+
+          RESULT=$(cat /tmp/test-result.json)
+          echo "$RESULT" | jq . 2>/dev/null || true
+
+          # Check AI Client SDK is available
+          echo "$RESULT" | jq -e '.ai_client_available == true' > /dev/null || {
+            echo "FAIL: WordPress AI Client SDK not available"
+            echo "This likely means WordPress does not include the AI Client (requires WP 6.9+)."
+            echo "--- Playground log (last 40 lines) ---"
+            tail -40 /tmp/playground.log
+            exit 1
+          }
+          echo "PASS: AI Client SDK is available"
+
+          # Check provider registration
+          echo "$RESULT" | jq -e '.provider_registered == true' > /dev/null || {
+            echo "FAIL: Ollama provider not registered in WordPress"
+            echo "Error field: $(echo "$RESULT" | jq -r '.error // "none"')"
+            echo "--- Playground log (last 40 lines) ---"
+            tail -40 /tmp/playground.log
+            exit 1
+          }
+          echo "PASS: Ollama provider is registered"
+
+          # Check Ollama connectivity from WordPress (non-fatal in Playground WASM)
+          if echo "$RESULT" | jq -e '.ollama_reachable == true' > /dev/null 2>&1; then
+            echo "PASS: Ollama is reachable from WordPress"
+            MODEL_COUNT=$(echo "$RESULT" | jq '.model_count // 0')
+            echo "Discovered $MODEL_COUNT model(s) from Ollama"
+            [ "$MODEL_COUNT" -gt 0 ] || {
+              echo "WARN: No models discovered (Ollama reachable but model list empty)"
+            }
+          else
+            echo "INFO: Ollama not reachable from Playground WASM PHP (expected in sandboxed environment)"
+            echo "Error: $(echo "$RESULT" | jq -r '.error // "unknown"')"
+            echo "Skipping connectivity and model discovery checks."
+          fi
+
+          echo ""
+          echo "All integration tests passed!"

@@ -1,0 +1,19 @@
+{
+    "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+    "preferredVersions": {
+        "php": "8.0",
+        "wp": "latest"
+    },
+    "steps": [
+        {
+            "step": "defineWpConfigConsts",
+            "consts": {
+                "OLLAMA_BASE_URL": "http://localhost:11434/v1"
+            }
+        },
+        {
+            "step": "activatePlugin",
+            "pluginPath": "ai-provider-for-ollama/plugin.php"
+        }
+    ]
+}
